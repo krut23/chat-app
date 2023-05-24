@@ -1,20 +1,47 @@
 import express from 'express';
 import { createServer } from 'http';
 import { Server, Socket } from 'socket.io';
-import Message from './model/messagemodel';
+import ChatMessage from './model/messagemodel';
+import { register, login,chathistory } from './controller/usercontroller';
+import { authenticate } from './midleware/auth';
+
+
 
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer);
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.set('view engine', 'ejs');
+
+
+
+app.get("/",(req,res)=>{
+res.render("index")
+})
+
+app.get('/register', (req,res) => {
+  res.render('register');
+});
+app.post("/register", register);
+
+app.get("/login", (req,res)=>{
+  res.render("login")
+})
+
+app.post("/login",login);
+
+app.get("/chathistory",(req,res)=>{
+  res.render("chathistory")
+})
+app.get("/chathistory",authenticate,chathistory)
+
 // Socket.io 
 io.on('connection', (socket: Socket) => {
   console.log('Connected');
 
-  socket.on('disconnect', () => {
-    console.log('Disconnected');
-  });
-
+  
   // group chat
   socket.on('joinGroup', (groupId: string) => {
     socket.join(groupId);
@@ -30,7 +57,7 @@ io.on('connection', (socket: Socket) => {
     try {
       // Save message 
       const { content, groupId } = messageData;
-      const message = await Message.create({ content, senderId: socket.id, groupId });
+      const message = await ChatMessage.create({ content, senderId: socket.id, groupId });
 
       io.to(groupId).emit('groupChatMessage', { content, senderId: socket.id });
     } catch (error) {
@@ -43,7 +70,7 @@ io.on('connection', (socket: Socket) => {
     try {
       // Save message 
       const { content, senderId, receiverId } = messageData;
-      const message = await Message.create({ content, senderId, receiverId });
+      const message = await ChatMessage.create({ content, senderId, receiverId });
 
       socket.emit('ChatMessage', message);
 
@@ -54,6 +81,9 @@ io.on('connection', (socket: Socket) => {
     } catch (error) {
       console.error('Error saving chat message:', error);
     }
+  });
+  socket.on('disconnect', () => {
+    console.log('Disconnected');
   });
 });
 
