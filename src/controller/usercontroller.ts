@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import '../database';
 import User from '../model/usermodel';
 import dotenv from 'dotenv'
-import ChatMessage from '../model/messagemodel';
+import Message from '../model/messagemodel';
 import ejs from 'ejs';
 
 dotenv.config({ path: './config.env' });
@@ -64,16 +64,16 @@ export const register = async (req: Request, res: Response) => {
       const pageSize = parseInt(limit as string) || 10;
   
       const offset = (pageNumber - 1) * pageSize;
-      const message = await ChatMessage.findByPk(groupId);
+      const message = await Message.findByPk(groupId);
       if (!message) {
         return res.status(404).json({ message: 'Message not found' });
       }
-      const chatHistory = await ChatMessage.findAndCountAll({
+      const chatHistory = await Message.findAndCountAll({
         offset,
         limit: pageSize,
       });
   
-      res.render('/views/chathistory.ejs', {
+      res.render('/views/chat_history.ejs', {
         chatHistory: chatHistory.rows,
         totalPages: Math.ceil(chatHistory.count / pageSize),
         currentPage: pageNumber,

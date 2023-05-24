@@ -1,7 +1,7 @@
 import express from 'express';
 import { createServer } from 'http';
 import { Server, Socket } from 'socket.io';
-import ChatMessage from './model/messagemodel';
+import Message from './model/messagemodel';
 import { register, login,chathistory } from './controller/usercontroller';
 import { authenticate } from './midleware/auth';
 
@@ -57,7 +57,7 @@ io.on('connection', (socket: Socket) => {
     try {
       // Save message 
       const { content, groupId } = messageData;
-      const message = await ChatMessage.create({ content, senderId: socket.id, groupId });
+      const message = await Message.create({ content, senderId: socket.id, groupId });
 
       io.to(groupId).emit('groupChatMessage', { content, senderId: socket.id });
     } catch (error) {
@@ -70,7 +70,7 @@ io.on('connection', (socket: Socket) => {
     try {
       // Save message 
       const { content, senderId, receiverId } = messageData;
-      const message = await ChatMessage.create({ content, senderId, receiverId });
+      const message = await Message.create({ content, senderId, receiverId });
 
       socket.emit('ChatMessage', message);
 
