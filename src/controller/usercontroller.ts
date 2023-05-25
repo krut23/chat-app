@@ -73,7 +73,7 @@ export const register = async (req: Request, res: Response) => {
         limit: pageSize,
       });
   
-      res.render('/views/chat_history.ejs', {
+      res.render('chathistory', {
         chatHistory: chatHistory.rows,
         totalPages: Math.ceil(chatHistory.count / pageSize),
         currentPage: pageNumber,

@@ -4,7 +4,7 @@ import { Server, Socket } from 'socket.io';
 import Message from './model/messagemodel';
 import { register, login,chathistory } from './controller/usercontroller';
 import { authenticate } from './midleware/auth';
-
+import path from 'path'
 
 
 const app = express();
@@ -13,6 +13,7 @@ const io = new Server(httpServer);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
 
@@ -35,7 +36,7 @@ app.post("/login",login);
 app.get("/chathistory",(req,res)=>{
   res.render("chathistory")
 })
-app.get("/chathistory",authenticate,chathistory)
+app.get("/chat_history",authenticate,chathistory)
 
 // Socket.io 
 io.on('connection', (socket: Socket) => {
