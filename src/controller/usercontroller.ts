@@ -49,7 +49,7 @@ export const register = async (req: Request, res: Response) => {
 
       const token = jwt.sign({ id: user.id}, process.env.ACCESS_TOKEN!, {expiresIn: '10h'});
 
-      res.redirect(`/chathistory?token=${token}`);
+      res.redirect(`/chat_history?token=${token}`);
     } catch (error) {
       console.error(error);
       return res.status(500).json({ message: 'Internal server error' });
@@ -83,6 +83,7 @@ export const register = async (req: Request, res: Response) => {
       res.status(500).json({ error: 'Internal server error' });
     }
   };
+  
   
 
 export default { register,login,chathistory};

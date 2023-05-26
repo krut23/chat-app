@@ -1,5 +1,7 @@
 import { Model, DataTypes } from 'sequelize';
-import  sequelize  from '../database';
+import sequelize from '../database';
+import User from './usermodel';
+import Group from './groupmodel';
 
 class Message extends Model {
   public id!: number;
@@ -8,6 +10,11 @@ class Message extends Model {
   public receiverId?: string;
   public groupId?: string;
 
+  public static associate(models: any) {
+    Message.belongsTo(models.User, { foreignKey: 'senderId', as: 'sender' });
+    Message.belongsTo(models.User, { foreignKey: 'receiverId', as: 'receiver' });
+    Message.belongsTo(models.Group, { foreignKey: 'groupId', as: 'group' });
+  }
 }
 
 Message.init(
@@ -37,6 +44,7 @@ Message.init(
   {
     tableName: 'messages',
     sequelize,
+    timestamps: false,
   }
 );
 

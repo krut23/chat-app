@@ -3,6 +3,7 @@ import { createServer } from 'http';
 import { Server, Socket } from 'socket.io';
 import Message from './model/messagemodel';
 import { register, login,chathistory } from './controller/usercontroller';
+import { createGroup, addGroupMember,groupRemoveMember,deleteGroup } from './controller/groupcontroller';
 import { authenticate } from './midleware/auth';
 import path from 'path'
 
@@ -13,7 +14,6 @@ const io = new Server(httpServer);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
 
@@ -38,19 +38,30 @@ app.get("/chathistory",(req,res)=>{
 })
 app.get("/chat_history",authenticate,chathistory)
 
+
+// Group
+app.post("/group",authenticate,createGroup)
+app.post("/groups/:groupId/members/:userId", authenticate,addGroupMember);
+app.delete("/groups/:groupId/members/:userId", authenticate, groupRemoveMember);
+app.delete("/groups/:groupId", authenticate,deleteGroup);
+
 // Socket.io 
 io.on('connection', (socket: Socket) => {
   console.log('Connected');
 
-  
-  // group chat
+  // Store the groups the user has joined
+  const joinedGroups = new Set();
+
+  // Group chat
   socket.on('joinGroup', (groupId: string) => {
     socket.join(groupId);
+    joinedGroups.add(groupId);
     console.log(`User joined group ${groupId}`);
   });
 
   socket.on('leaveGroup', (groupId: string) => {
     socket.leave(groupId);
+    joinedGroups.delete(groupId);
     console.log(`User left group ${groupId}`);
   });
 
@@ -58,15 +69,18 @@ io.on('connection', (socket: Socket) => {
     try {
       // Save message 
       const { content, groupId } = messageData;
-      const message = await Message.create({ content, senderId: socket.id, groupId });
 
-      io.to(groupId).emit('groupChatMessage', { content, senderId: socket.id });
+      // Only  the message to group members
+      if (joinedGroups.has(groupId)) {
+        const message = await Message.create({ content, senderId: socket.id, groupId });
+        socket.to(groupId).emit('groupChatMessage', { content, senderId: socket.id });
+      }
     } catch (error) {
       console.error('Error saving group chat message:', error);
     }
   });
 
-  // one to one chat
+  // One-to-one chat
   socket.on('ChatMessage', async (messageData: any) => {
     try {
       // Save message 
@@ -83,12 +97,14 @@ io.on('connection', (socket: Socket) => {
       console.error('Error saving chat message:', error);
     }
   });
+
   socket.on('disconnect', () => {
     console.log('Disconnected');
+    });
   });
-});
 
-const PORT = process.env.PORT || 3000;
+
+const PORT = process.env.PORT || 4000;
 httpServer.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
