@@ -1,11 +1,15 @@
 import express from 'express';
 import { createServer } from 'http';
 import { Server, Socket } from 'socket.io';
-import Message from './model/messagemodel';
+import GroupMessage from './model/Groupmessagemodel';
 import { register, login,chathistory } from './controller/usercontroller';
-import { createGroup, addGroupMember,groupRemoveMember,deleteGroup } from './controller/groupcontroller';
+import { addGroupMember,groupRemoveMember,deleteGroup } from './controller/groupcontroller';
 import { authenticate } from './midleware/auth';
-import path from 'path'
+import GroupUser from './model/groupusermodel';
+import bcrypt from 'bcrypt';
+import Group from './model/groupmodel';
+import GroupMember from './model/groupmembermodel';
+import User from './model/usermodel';
 
 
 const app = express();
@@ -17,94 +21,127 @@ app.use(express.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 
 
-
-app.get("/",(req,res)=>{
-res.render("index")
-})
-
+// user register
 app.get('/register', (req,res) => {
   res.render('register');
 });
 app.post("/register", register);
 
-app.get("/login", (req,res)=>{
-  res.render("login")
+// user login
+app.get("/user_login", (req,res)=>{
+  res.render("user_login")
 })
-
 app.post("/login",login);
 
+// user show chat history
 app.get("/chathistory",(req,res)=>{
   res.render("chathistory")
 })
-app.get("/chat_history",authenticate,chathistory)
+app.get("/chat_history",chathistory)
 
+
+// Server login page
+app.get('/', (req, res) => {
+  res.render('login');
+});
+
+// Server create group page
+app.get('/creategroup.ejs', (req, res) => {
+  res.render('creategroup');
+});
+
+// Server group chat page
+app.get('/index.ejs', (req, res) => {
+  res.render('index')
+});
 
 // Group
-app.post("/group",authenticate,createGroup)
 app.post("/groups/:groupId/members/:userId", authenticate,addGroupMember);
 app.delete("/groups/:groupId/members/:userId", authenticate, groupRemoveMember);
 app.delete("/groups/:groupId", authenticate,deleteGroup);
 
-// Socket.io 
+const users: { [key: string]: string } = {};
+
+// Handle new socket connections
 io.on('connection', (socket: Socket) => {
-  console.log('Connected');
+  console.log('A user connected.');
+ 
+// Handle login event
+socket.on('login', async (data: { username: string; password: string }) => {
+  try {
+    const { username, password } = data;
 
-  // Store the groups the user has joined
-  const joinedGroups = new Set();
-
-  // Group chat
-  socket.on('joinGroup', (groupId: string) => {
-    socket.join(groupId);
-    joinedGroups.add(groupId);
-    console.log(`User joined group ${groupId}`);
-  });
-
-  socket.on('leaveGroup', (groupId: string) => {
-    socket.leave(groupId);
-    joinedGroups.delete(groupId);
-    console.log(`User left group ${groupId}`);
-  });
-
-  socket.on('groupChatMessage', async (messageData: any) => {
-    try {
-      // Save message 
-      const { content, groupId } = messageData;
-
-      // Only  the message to group members
-      if (joinedGroups.has(groupId)) {
-        const message = await Message.create({ content, senderId: socket.id, groupId });
-        socket.to(groupId).emit('groupChatMessage', { content, senderId: socket.id });
-      }
-    } catch (error) {
-      console.error('Error saving group chat message:', error);
+    const user = await User.findOne({ where: { username } });
+    if (!user) {
+      socket.emit('loginError', { message: 'Invalid username or password' });
+      return;
     }
-  });
-
-  // One-to-one chat
-  socket.on('ChatMessage', async (messageData: any) => {
-    try {
-      // Save message 
-      const { content, senderId, receiverId } = messageData;
-      const message = await Message.create({ content, senderId, receiverId });
-
-      socket.emit('ChatMessage', message);
-
-      const receiverSocket = io.sockets.sockets.get(receiverId);
-      if (receiverSocket) {
-        receiverSocket.emit('ChatMessage', message);
-      }
-    } catch (error) {
-      console.error('Error saving chat message:', error);
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      socket.emit('loginError', { message: 'Invalid username or password' });
+      return;
     }
-  });
+    // Successful login
+    socket.emit('loginSuccess', { message: 'Login successful' });
 
-  socket.on('disconnect', () => {
-    console.log('Disconnected');
+     // Save the database
+     const groupUser = new GroupUser({
+      username: user.username,
+      email: user.email,
+    });
+    await groupUser.save();
+  } catch (error) {
+    console.error(error);
+    socket.emit('loginError', { message: 'Internal server error' });
+  }
+});
+
+
+// Handle create group event
+socket.on('createGroup', async ({ name, adminId }) => {
+  try {
+    // Create the group in the database
+    const group = await Group.create({ name, adminId });
+    // Create the group member entry in the database
+    await GroupMember.create({ groupId: group.id, userId: adminId, isAdmin: true });
+
+    socket.emit('groupCreated', group.toJSON());
+  } catch (error) {
+    console.error('Error creating group:', error);
+    socket.emit('groupCreationError', { error: 'Failed to create group' });
+  }
+});
+
+
+  // Handle joining a group
+  socket.on('new-user-joined', name => {
+    console.log("New user",name)
+    users[socket.id] = name;
+    socket.broadcast.emit('user-joined', name);
+    
+  });
+  socket.on('send', (message) => {
+    socket.broadcast.emit('receive', {
+      message: message,
+      name: users[socket.id],
+    });
+    // Save the group message to the database
+    GroupMessage.create({
+      content: message,
+      sender: users[socket.id],
     });
   });
+  
+   
+
+  socket.on('disconnet', message => {
+    socket.broadcast.emit('left',users[socket.id]);
+    delete users[socket.id];
+  });
+});
 
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 8001;
 httpServer.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

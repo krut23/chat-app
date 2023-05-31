@@ -1,26 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <title>Chat History</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .message {
+      margin-bottom: 10px;
+      padding: 10px;
+      background-color: #f1f1f1;
+      border-radius: 5px;
+    }
+  </style>
 </head>
 <body>
   <h1>Chat History</h1>
-  <ul>
-    <% chatHistory.forEach((message) => { %>
-      <li><%= message.content %></li>
+
+  <% if (chatHistory.length > 0) { %>
+    <% chatHistory.forEach(message => { %>
+      <div class="message">
+        <p><strong>Sender:</strong> <%= message.sender %></p>
+        <p><strong>Content:</strong> <%= message.content %></p>
+        <p><strong>Timestamp:</strong> <%= message.createdAt %></p>
+      </div>
     <% }); %>
-  </ul>
+  <% } else { %>
+    <p>No chat history available.</p>
+  <% } %>
 
   <% if (totalPages > 1) { %>
-    <div>
+    <div class="pagination">
       <% for (let i = 1; i <= totalPages; i++) { %>
         <% if (i === currentPage) { %>
           <span><%= i %></span>
         <% } else { %>
-          <a href="/chathistory/<%= groupId %>?page=<%= i %>&limit=<%= pageSize %>"><%= i %></a>
+          <a href="/chat_history?page=<%= i %>"><%= i %></a>
         <% } %>
       <% } %>
     </div>

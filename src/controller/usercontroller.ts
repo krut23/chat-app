@@ -4,8 +4,7 @@ import jwt from 'jsonwebtoken';
 import '../database';
 import User from '../model/usermodel';
 import dotenv from 'dotenv'
-import Message from '../model/messagemodel';
-import ejs from 'ejs';
+import GroupMessage from '../model/Groupmessagemodel';
 
 dotenv.config({ path: './config.env' });
 
@@ -13,7 +12,7 @@ dotenv.config({ path: './config.env' });
 
 export const register = async (req: Request, res: Response) => {
     try {
-      const { name, email, password } = req.body;
+      const { username, email, password } = req.body;
     
       const userExists = await User.findOne({ where: { email } });
       if (userExists) {
@@ -22,12 +21,12 @@ export const register = async (req: Request, res: Response) => {
       const hashedPassword = await bcrypt.hash(password, 10);
 
       const newUser = await User.create({
-        name,
+        username,
         email,
         password: hashedPassword,
       });
 
-      res.redirect('/login');
+      res.redirect('/');
     } catch (error) {
       console.error(error);
       return res.status(500).json({ message: 'Internal server error' });
@@ -58,22 +57,17 @@ export const register = async (req: Request, res: Response) => {
  
   export const chathistory = async (req: Request, res: Response) => {
     try {
-      const { groupId } = req.params;
       const { page, limit } = req.query;
       const pageNumber = parseInt(page as string) || 1;
       const pageSize = parseInt(limit as string) || 10;
   
-      const offset = (pageNumber - 1) * pageSize;
-      const message = await Message.findByPk(groupId);
-      if (!message) {
-        return res.status(404).json({ message: 'Message not found' });
-      }
-      const chatHistory = await Message.findAndCountAll({
-        offset,
+      // Fetch the chat history for the user
+      const chatHistory = await GroupMessage.findAndCountAll({
+        offset: (pageNumber - 1) * pageSize,
         limit: pageSize,
       });
   
-      res.render('chathistory', {
+      res.render('chat_history', {
         chatHistory: chatHistory.rows,
         totalPages: Math.ceil(chatHistory.count / pageSize),
         currentPage: pageNumber,
@@ -84,6 +78,4 @@ export const register = async (req: Request, res: Response) => {
     }
   };
   
-  
-
 export default { register,login,chathistory};

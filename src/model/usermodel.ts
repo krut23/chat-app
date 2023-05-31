@@ -1,10 +1,10 @@
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../database';
-import Message from './messagemodel';
+
 
 class User extends Model {
   public id!: number;
-  public name!: string;
+  public username!: string;
   public email!: string;
   public password!: string;
 
@@ -21,7 +21,7 @@ User.init(
       autoIncrement: true,
       primaryKey: true,
     },
-    name: {
+    username: {
       type: DataTypes.STRING,
       allowNull: false,
     },

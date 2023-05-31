@@ -2,20 +2,13 @@ import { Model, DataTypes } from 'sequelize';
 import sequelize from '../database';
 import User from './usermodel';
 import GroupMember from './groupmembermodel';
+import GroupUser from './groupusermodel';
 
 class Group extends Model {
   public id!: number;
   public name!: string;
   public adminId!: number;
 
-  public static associate(models: any) {
-    Group.belongsTo(models.User, { foreignKey: 'adminId', as: 'admin' });
-    Group.hasMany(models.GroupMember, { foreignKey: 'groupId', as: 'members' });
-  }
-  // Check if a user is the admin of the group
-  public isAdmin(userId: number): boolean {
-    return this.adminId === userId;
-  }
 }
 
 Group.init(
@@ -29,10 +22,14 @@ Group.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    adminId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
+      adminId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+          model: GroupUser,
+          key: 'id',
+        },
+      },
   },
   {
     tableName: 'groups',
@@ -40,4 +37,14 @@ Group.init(
     timestamps: false,
   }
 );
+
+Group.belongsTo(GroupUser, {
+  foreignKey: 'adminId',
+  as: 'admin',
+});
+
+Group.hasMany(GroupMember, {
+  foreignKey: 'groupId',
+  as: 'members',
+});
 export default Group;

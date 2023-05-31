@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Create Group</title>
+  <style>
+     body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background-color: #f1f1f1;
+    }
+
+    .container {
+      width: 300px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #fcfcfc;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    #loginForm {
+      margin-bottom: 10px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #000000;
+      box-sizing: border-box;
+      border-radius: 4px;
+    }
+
+    .error-message {
+      color: #ff0000;
+      margin-top: 10px;
+    }
+
+    .btn {
+      width: 100%;
+      cursor: pointer;
+      border-radius: 6px;
+      height: 34px;
+      border: 2px solid black;
+      background-color: #00b909;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Create Group</h1>
+    <form id="createGroupForm">
+      <label for="name">Group Name:</label>
+      <input type="text" id="name" name="name" required><br>
+      <label for="adminId">Admin ID:</label>
+      <input type="text" id="adminId" name="adminId" required><br>
+      <span id="error" class="error"></span><br>
+      <button class="btn" type="submit">Create Group</button>
+    </form>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io();
+
+      // Get references to the form and error message
+      const createGroupForm = document.getElementById('createGroupForm');
+      const errorSpan = document.getElementById('error');
+
+      // form submission
+      createGroupForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        const name = document.getElementById('name').value;
+        const adminId = document.getElementById('adminId').value;
+
+        socket.on('groupCreated', (group) => {
+          console.log('Group created:', group);
+          errorSpan.textContent = ''; 
+        });
+
+        socket.on('groupCreationError', (error) => {
+          console.error('Failed to create group:', error);
+          errorSpan.textContent = error.error; 
+        });
+
+        if (name && adminId) {
+          socket.emit('createGroup', { name, adminId });
+          // Redirect to the chat page
+          window.location.href = './index.ejs';
+        }
+      });
+    </script>
+  </div>
+</body>
+</html>

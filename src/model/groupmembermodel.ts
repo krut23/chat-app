@@ -1,7 +1,7 @@
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../database';
 import Group from './groupmodel';
-import User from './usermodel';
+import GroupUser from './groupusermodel';
 
 class GroupMember extends Model {
   public groupId!: number;
@@ -10,7 +10,7 @@ class GroupMember extends Model {
 
   public static associate(models: any) {
     GroupMember.belongsTo(models.Group, { foreignKey: 'groupId', as: 'group' });
-    GroupMember.belongsTo(models.User, { foreignKey: 'userId', as: 'user' });
+    GroupMember.belongsTo(models.GroupUser, { foreignKey: 'userId', as: 'user' });
   }
 }
 
@@ -26,7 +26,7 @@ GroupMember.init(
     userId: {
       type: DataTypes.INTEGER,
       references: {
-        model: User,
+        model: GroupUser,
         key: 'id',
       },
     },

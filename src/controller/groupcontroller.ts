@@ -5,19 +5,6 @@ import GroupMember from '../model/groupmembermodel';
 
 
 
-export const createGroup = async (req: Request, res: Response) => {
-  try {
-    const { name, adminId } = req.body;
-    const group = await Group.create({ name, adminId });
-    await GroupMember.create({ groupId: group.id, userId: adminId, isAdmin: true });
-    res.json(group);
-  } catch (error) {
-    console.error('Error creating group:', error);
-    res.status(500).json({ error: 'Failed to create group' });
-  }
-};
-
-
 export const addGroupMember = async (req:Request, res:Response)=>{
   try {
     const {  groupId, userId } = req.params;
@@ -100,4 +87,4 @@ export const groupRemoveMember = async (req:Request,res:Response)=>{
     }
   };
 
-export default { createGroup,  addGroupMember, groupRemoveMember,deleteGroup};
+export default { addGroupMember, groupRemoveMember,deleteGroup};
