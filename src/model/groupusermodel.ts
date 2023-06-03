@@ -4,13 +4,16 @@ import Group from './groupmodel';
 import GroupMessage from './Groupmessagemodel';
 
 
-
 export class GroupUser extends Model {
   public id!: number;
   public username!: string;
   public email!:string;
-
+  
+ 
   public readonly groups?: Group[];
+  public static associate(models: any) {
+    GroupUser.belongsToMany(models.Group, { through: 'GroupMember', foreignKey: 'userId' });
+  }
 
 }
 

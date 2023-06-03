@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-  <title>Create Group</title>
+  <meta charset="UTF-8">
+  <title>Group</title>
   <style>
-     body {
+    body {
       margin: 0;
       padding: 20px;
       font-family: Arial, sans-serif;
@@ -11,7 +13,7 @@
     }
 
     .container {
-      width: 300px;
+      width: 500px;
       margin: 0 auto;
       padding: 20px;
       background-color: #fcfcfc;
@@ -20,82 +22,152 @@
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
 
-    h1 {
-      text-align: center;
-    }
-
-    #loginForm {
+    .form-group {
       margin-bottom: 10px;
     }
 
-    input[type="text"] {
+    .form-group input[type="text"] {
       width: 100%;
       padding: 10px;
       margin: 8px 0;
-      border: 1px solid #000000;
+      border: 1px solid #ccc;
       box-sizing: border-box;
       border-radius: 4px;
     }
 
-    .error-message {
-      color: #ff0000;
-      margin-top: 10px;
+    .form-group button {
+
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+      background-color: #00b909;
+      color: rgb(0, 0, 0);
+      cursor: pointer;
     }
 
-    .btn {
-      width: 100%;
-      cursor: pointer;
-      border-radius: 6px;
-      height: 34px;
+    .form-group button:hover {
       border: 2px solid black;
-      background-color: #00b909;
+    }
+
+    .group-list {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      list-style: none;
+    }
+
+    .group-list li {
+      width: auto;
+      padding: 5px 0;
+      cursor: pointer;
+    }
+
+    .group-list li button {
+      padding: 5px 10px;
+      background-color: #748d75;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+
+    .group-list li button:hover {
+      border: 2px solid black;
     }
   </style>
 </head>
+
 <body>
   <div class="container">
-    <h1>Create Group</h1>
-    <form id="createGroupForm">
-      <label for="name">Group Name:</label>
-      <input type="text" id="name" name="name" required><br>
-      <label for="adminId">Admin ID:</label>
-      <input type="text" id="adminId" name="adminId" required><br>
-      <span id="error" class="error"></span><br>
-      <button class="btn" type="submit">Create Group</button>
-    </form>
-
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-      const socket = io();
-
-      // Get references to the form and error message
-      const createGroupForm = document.getElementById('createGroupForm');
-      const errorSpan = document.getElementById('error');
-
-      // form submission
-      createGroupForm.addEventListener('submit', (event) => {
-        event.preventDefault();
-
-        const name = document.getElementById('name').value;
-        const adminId = document.getElementById('adminId').value;
-
-        socket.on('groupCreated', (group) => {
-          console.log('Group created:', group);
-          errorSpan.textContent = ''; 
-        });
-
-        socket.on('groupCreationError', (error) => {
-          console.error('Failed to create group:', error);
-          errorSpan.textContent = error.error; 
-        });
-
-        if (name && adminId) {
-          socket.emit('createGroup', { name, adminId });
-          // Redirect to the chat page
-          window.location.href = './index.ejs';
-        }
-      });
-    </script>
+    <h1>Group</h1>
+    <div class="form-group">
+      <label for="group-input">Group Name:</label>
+      <input type="text" id="group-input">
+      <button id="create-group-button">Create Group</button>
+    </div>
+    <h2>Available Groups</h2>
+    <ul class="group-list"></ul>
   </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const groupList = document.querySelector('.group-list');
+    const createGroupButton = document.getElementById('create-group-button');
+
+    // Function to save the group names to local storage
+    function saveGroupNamesToLocalStorage(groups) {
+      localStorage.setItem('groupNames', JSON.stringify(groups));
+    }
+
+    // Function to retrieve the group names from local storage
+    function getGroupNamesFromLocalStorage() {
+      const storedGroupNames = localStorage.getItem('groupNames');
+      return storedGroupNames ? JSON.parse(storedGroupNames) : [];
+    }
+
+    function createGroup() {
+      const groupName = document.getElementById('group-input').value;
+      const username = prompt('Enter your username');
+      fetch('/api/groups', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: groupName, username: username }),
+      })
+        .then(response => response.json())
+        .then(group => {
+          addGroupToList(group);
+          const groupNames = getGroupNamesFromLocalStorage();
+          groupNames.push(group.name);
+          saveGroupNamesToLocalStorage(groupNames);
+        })
+        .catch(error => {
+          console.error('Error creating group:', error);
+        });
+      socket.emit('createGroup', groupName);
+      document.getElementById('group-input').value = '';
+    }
+
+    function joinGroup(groupId) {
+      window.open('/index.ejs?groupId=' + groupId, '_blank');
+    }
+
+    function addGroupToList(group) {
+      const listItem = document.createElement('li');
+      listItem.textContent = group.name;
+      listItem.dataset.groupId = group.groupId;
+
+      const joinButton = document.createElement('button');
+      joinButton.textContent = 'Join';
+      joinButton.addEventListener('click', function (event) {
+        event.stopPropagation();
+        const groupId = listItem.dataset.groupId;
+        joinGroup(groupId);
+      });
+
+      listItem.appendChild(joinButton);
+      groupList.appendChild(listItem);
+    }
+
+    createGroupButton.addEventListener('click', createGroup);
+
+    socket.on('groups', function (groups) {
+      groupList.innerHTML = '';
+      groups.forEach(function (group) {
+        addGroupToList(group);
+      });
+      saveGroupNamesToLocalStorage(groups.map(group => group.name));
+    });
+    // Load the group names from local storage on page load
+    window.addEventListener('DOMContentLoaded', function () {
+      const groupNames = getGroupNamesFromLocalStorage();
+      groupNames.forEach(function (groupName) {
+        const group = { name: groupName };
+        addGroupToList(group);
+      });
+    });
+  </script>
 </body>
+
 </html>

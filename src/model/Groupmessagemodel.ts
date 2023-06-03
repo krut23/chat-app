@@ -1,28 +1,43 @@
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../database';
 import Group from './groupmodel';
+import GroupUser from './groupusermodel';
 
 class GroupMessage extends Model {
-  public id!: number;
-  public content!: string;
-  public sender!: string;
+  id!: number;
+  content!: string;
+  groupId!: number;
+  username!:string // Add the groupId column
 
+  static associate() {
+    GroupMessage.belongsTo(Group, { foreignKey: 'groupId' });
+    GroupMessage.belongsTo(GroupUser, { foreignKey: 'userId' });
+  }
 }
 
 GroupMessage.init(
   {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
     content: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: false,
     },
-    sender: {
-      type: DataTypes.STRING,
+    groupId: {
+      type: DataTypes.UUID, 
+      allowNull: false,
+    },
+    username: {
+      type: DataTypes.STRING,   
       allowNull: false,
     },
   },
   {
     sequelize,
-    modelName: 'Group_Message',
+    modelName: 'Group-Message',
   }
 );
 

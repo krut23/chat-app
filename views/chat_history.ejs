@@ -26,7 +26,7 @@
   <% if (chatHistory.length > 0) { %>
     <% chatHistory.forEach(message => { %>
       <div class="message">
-        <p><strong>Sender:</strong> <%= message.sender %></p>
+        <p><strong>Sender:</strong> <%= message.username %></p>
         <p><strong>Content:</strong> <%= message.content %></p>
         <p><strong>Timestamp:</strong> <%= message.createdAt %></p>
       </div>

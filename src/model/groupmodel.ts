@@ -1,50 +1,37 @@
-import { Model, DataTypes } from 'sequelize';
+import { DataTypes, Model, Sequelize, UUIDV4} from 'sequelize';
 import sequelize from '../database';
-import User from './usermodel';
-import GroupMember from './groupmembermodel';
+import { v4 as uuidv4 } from 'uuid';
 import GroupUser from './groupusermodel';
+import GroupMessage from './Groupmessagemodel';
 
 class Group extends Model {
-  public id!: number;
-  public name!: string;
-  public adminId!: number;
-
+  groupId!: number;
+  name!: string;
+  username!: string;
+  id: any;
 }
+
 
 Group.init(
   {
-    id: {
-      type: DataTypes.INTEGER,
+    groupId: {
+      type: DataTypes.UUID,
+      defaultValue: () => uuidv4(),
       primaryKey: true,
-      autoIncrement: true,
     },
     name: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-      adminId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-          model: GroupUser,
-          key: 'id',
-        },
-      },
+    username: {
+      type: DataTypes.STRING, 
+      allowNull: false,
+    },
   },
   {
-    tableName: 'groups',
     sequelize,
-    timestamps: false,
+    modelName: 'Group',
   }
 );
 
-Group.belongsTo(GroupUser, {
-  foreignKey: 'adminId',
-  as: 'admin',
-});
-
-Group.hasMany(GroupMember, {
-  foreignKey: 'groupId',
-  as: 'members',
-});
 export default Group;

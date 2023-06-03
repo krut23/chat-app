@@ -65,6 +65,7 @@ export const register = async (req: Request, res: Response) => {
       const chatHistory = await GroupMessage.findAndCountAll({
         offset: (pageNumber - 1) * pageSize,
         limit: pageSize,
+
       });
   
       res.render('chat_history', {

@@ -4,6 +4,7 @@ import Group from './groupmodel';
 import GroupUser from './groupusermodel';
 
 class GroupMember extends Model {
+  public id!:number;
   public groupId!: number;
   public userId!: number;
   public isAdmin!: boolean;
@@ -16,12 +17,14 @@ class GroupMember extends Model {
 
 GroupMember.init(
   {
-    groupId: {
+    id: {
       type: DataTypes.INTEGER,
-      references: {
-        model: Group,
-        key: 'id',
-      },
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    groupId: {
+      type: DataTypes.UUID, 
+      allowNull: false,
     },
     userId: {
       type: DataTypes.INTEGER,
