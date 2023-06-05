@@ -34,11 +34,15 @@ app.get("/user_login", (req, res) => {
 })
 app.post("/login", login);
 
+
 // user show chat history
 app.get("/chathistory", (req, res) => {
   res.render("chathistory")
 })
 app.get("/chat_history", chathistory)
+
+
+app.get("/chat_history", authenticate,  chathistory)
 
 
 // Server login page

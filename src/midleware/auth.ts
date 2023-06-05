@@ -23,7 +23,8 @@ declare global {
     
         const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN!);
         req.user = decodedToken;
-    
+        
+        res.set('Authorization', `Bearer ${token}`);
         next();
       } catch (error) {
         console.error(error);
