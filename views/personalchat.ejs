@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Personal Chat</title>
+<style>
+  .chat-container {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .message-list {
+    list-style-type: none;
+    padding: 0;
+  }
+
+  .message-item {
+    margin-bottom: 10px;
+    overflow: auto;
+  }
+
+  .message-sender {
+    font-weight: bold;
+  }
+
+  .message-content {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin: 0 5px;
+  }
+
+  .sender {
+    text-align: right;
+    background-color:#dcf8c6;
+  }
+
+  .receiver {
+    text-align: left;
+    background-color: #f0ecec;
+  }
+
+  .message-input {
+    width: 85%;
+    padding: 5px;
+    margin-top: 10px;
+  }
+
+  .send-button {
+    padding: 5px 10px;
+  }
+
+  .sidebar {
+    width: 200px;
+    padding: 10px;
+    background-color: #f0f0f0;
+    float: left;
+  }
+
+  .user-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .user-item {
+    margin-bottom: 5px;
+    cursor: pointer;
+  }
+
+  .user-item:hover {
+    font-weight: bold;
+  }
+
+  .message-container {
+    max-height: 400px;
+    height: auto;
+    overflow-y: auto;
+    background-color: #95907e;
+    border: 1px solid #000;
+    padding-bottom: 100px;
+  }
+
+
+</style>
+</head>
+<body>
+  <div class="sidebar">
+    <h3>User List</h3>
+    <ul id="user-list" class="user-list">
+      <% users.forEach(function(user) { %>
+        <li class="user-item" onclick="openChat('<%= user.username %>')"><%= user.username %></li>
+      <% }); %>
+    </ul>
+  </div>
+  <div class="chat-container">
+    <h3 id="header">Select a user</h3>
+    <div id="message-container" class="message-container"></div>
+    <form id="chat-form" class="message-form">
+      <input id="message-input" class="message-input" autocomplete="off" />
+      <button type="submit" class="send-button">Send</button>
+    </form>
+  </div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    const form = document.getElementById('chat-form');
+    const input = document.getElementById('message-input');
+    const messageContainer = document.getElementById('message-container');
+    const userList = document.getElementById('user-list');
+    const header = document.getElementById('header');
+
+    // Prompt for sender and receiver usernames
+    const sender = prompt("Enter your username (sender):");
+    let receiver = null;
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const message = input.value;
+      if (message) {
+        socket.emit('personalchat message', { message, sender, receiver });
+        input.value = '';
+      }
+    });
+
+    socket.on('personalchat message', (message) => {
+      if (message.sender === sender) {
+        // Sender message
+        const messageItem = document.createElement('div');
+        messageItem.className = 'message-item sender';
+        messageItem.innerHTML = `
+          <span class="message-content">${message.content}</span>
+        `;
+        messageContainer.appendChild(messageItem);
+      } else if (message.sender === receiver) {
+        // Receiver message
+        const messageItem = document.createElement('div');
+        messageItem.className = 'message-item receiver';
+        messageItem.innerHTML = `
+          <span class="message-content">${message.content}</span>
+        `;
+        messageContainer.appendChild(messageItem);
+      }
+      messageContainer.scrollTop = messageContainer.scrollHeight; 
+    });
+
+    function openChat(selectedUser) {
+      receiver = selectedUser;
+      messageContainer.innerHTML = ''; 
+      header.innerText = `Chat with ${selectedUser}`; 
+    }
+  </script>
+</body>
+</html>

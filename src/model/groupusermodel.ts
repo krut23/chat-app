@@ -11,6 +11,7 @@ export class GroupUser extends Model {
   
  
   public readonly groups?: Group[];
+  
   public static associate(models: any) {
     GroupUser.belongsToMany(models.Group, { through: 'GroupMember', foreignKey: 'userId' });
   }

@@ -1,34 +1,39 @@
-import {DataTypes, Model} from 'sequelize';
-import sequelize from "../database";
+import { DataTypes, Model } from 'sequelize';
+import sequelize from '../database'; 
 
-class PersonlMessage extends Model {
-
+class PersonalMessage extends Model {
+  
+  public id!: number;
+  public sender!: string;
+  public receiver!: string;
+  public content!: string;
 }
 
-PersonlMessage.init(
+PersonalMessage.init(
   {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
-      autoIncrement: true
+      autoIncrement: true,
     },
-    senderId: {
-      type: DataTypes.INTEGER,
-      allowNull: false
+    sender: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
-    receiverId: {
-      type: DataTypes.INTEGER,
-      allowNull: false
+    receiver: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     content: {
       type: DataTypes.TEXT,
-      allowNull: false
-    }
+      allowNull: false,
+    },
   },
   {
     sequelize,
-    modelName: 'Message',
-    tableName: 'Personl_Message' 
+    modelName: 'PersonalMessage',
+    tableName: 'personal_messages'
   }
 );
-export default PersonlMessage;
+
+export default PersonalMessage;

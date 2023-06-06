@@ -7,6 +7,7 @@ class User extends Model {
   public username!: string;
   public email!: string;
   public password!: string;
+  socketId: any;
 
   public static associate(models: any) {
     User.hasMany(models.Message, { foreignKey: 'senderId', as: 'sentMessages' });
@@ -24,6 +25,7 @@ User.init(
     username: {
       type: DataTypes.STRING,
       allowNull: false,
+      unique: true,
     },
     email: {
       type: DataTypes.STRING,
@@ -37,6 +39,7 @@ User.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
+  
   },
   {
     tableName: 'users',
