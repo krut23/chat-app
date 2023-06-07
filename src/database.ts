@@ -8,16 +8,21 @@ const sequelize = new Sequelize(
   { dialect: 'postgres', logging: false }
 );
 
+sequelize.sync({ force: false })
+  .then(() => {
+    console.log('All models were synchronized successfully.');
+  })
+  .catch((err) => {
+    console.error('Unable to synchronize the models:', err);
+  });
 
-(async () => {
-  try {
-    await sequelize.authenticate();
-    console.log('Connected to the database');
-    await sequelize.sync({ force: true });
-    console.log('Models synchronized with the database');
-  } catch (error) {
-    console.error('Unable to connect to the database:', error);
-  }
-})();
+sequelize
+  .authenticate()
+  .then(() => {
+    console.log('Connected to the database.');
+  })
+  .catch((err) => {
+    console.error('Unable to connect to the database:', err);
+  });
 
 export default sequelize;

@@ -17,7 +17,7 @@ export const createGroup = async (req: Request, res: Response) => {
     const group = await Group.create({ name, username });
     const groupMember = await GroupMember.create({
       groupId: group.groupId,
-      userId: user.id,
+      username,
       isAdmin: true,
     });
     res.status(201).json({ group, groupMember });

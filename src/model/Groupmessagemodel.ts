@@ -1,7 +1,7 @@
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../database';
 import Group from './groupmodel';
-import GroupUser from './groupusermodel';
+import User from './usermodel';
 
 class GroupMessage extends Model {
   id!: number;
@@ -11,7 +11,7 @@ class GroupMessage extends Model {
 
   static associate() {
     GroupMessage.belongsTo(Group, { foreignKey: 'groupId' });
-    GroupMessage.belongsTo(GroupUser, { foreignKey: 'userId' });
+    GroupMessage.belongsTo(User, { foreignKey: 'userId' });
   }
 }
 

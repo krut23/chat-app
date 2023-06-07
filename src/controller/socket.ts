@@ -3,16 +3,16 @@ import GroupMessage from '../model/Groupmessagemodel';
 import PersonalMessage from '../model/personalMessagemodel';
 import Group from '../model/groupmodel';
 import User from '../model/usermodel';
-import GroupUser from '../model/groupusermodel';
 import bcrypt from 'bcrypt';
 import { Server as HttpServer } from 'http';
 
-export function initializeSocket(httpServer:HttpServer) {
-    const io = new Server(httpServer);
+export function initializeSocket(httpServer: HttpServer) {
+  const io = new Server(httpServer);
 
-io.on('connection', (socket) => {
+
+  io.on('connection', (socket) => {
     console.log('A user connected.');
-  
+
     // Handle login event
     socket.on('login', async (data) => {
       try {
@@ -29,42 +29,69 @@ io.on('connection', (socket) => {
         }
         // Successful login
         socket.emit('loginSuccess', { message: 'Login successful' });
-  
-        // Save the user details in the GroupUser model
-        const groupUser = new GroupUser({
-          username: user.username,
-          email: user.email,
-        });
-        await groupUser.save();
+
       } catch (error) {
         console.error(error);
         socket.emit('loginError', { message: 'Internal server error' });
       }
     });
-  
-       // Send the list of active groups
-       Group.findAll().then((groups) => {
-        socket.emit('groups', groups);
-      });
-    
-      // Listen for new messages
-      socket.on('message', async (message) => {
-        console.log('Received message:', message);
-        try {
-          // Save the message to the database
-          const savedMessage = await GroupMessage.create({
-            content: message.content,
-            groupId: message.groupId,
-            username: message.username,
+
+    // Send the list of active groups
+    Group.findAll().then((groups) => {
+      socket.emit('groups', groups);
+    });
+
+
+    // Handle new user joining
+    socket.on('joinChat', async (groupId, username) => {
+      try {
+        // Join the room 
+        socket.join(`group_${groupId}`);
+        // Fetch the group name from the database
+        const group = await Group.findByPk(groupId);
+
+        if (group) {
+          socket.emit('groupName', group.name);
+
+          const message = `${username} joined the chat`;
+          io.to(`group_${groupId}`).emit('userJoined', message);
+
+          // Fetch previous messages from the group
+          const previousMessages = await GroupMessage.findAll({
+            where: { groupId },
+            order: [['createdAt', 'ASC']],
           });
-          console.log('Message saved:', savedMessage);
-          io.emit('message', savedMessage);
-        } catch (error) {
-          console.error('Error saving message:', error);
+          socket.emit('previousMessages', previousMessages);
+        } else {
+          console.error('Group not found');
         }
-      });
-  
-  
+      } catch (error) {
+        console.error('Error joining chat:', error);
+      }
+    });
+
+
+    // Listen for new messages
+    socket.on('message', async (message) => {
+      console.log('Received message:', message);
+      try {
+        // Save the message to the database
+        const savedMessage = await GroupMessage.create({
+          content: message.content,
+          groupId: message.groupId,
+          username: message.username,
+        });
+        console.log('Message saved:', savedMessage);
+
+        // Emit the message to the group room
+        io.to(`group_${message.groupId}`).emit('message', savedMessage);
+      } catch (error) {
+        console.error('Error saving message:', error);
+      }
+    });
+
+
+
     // Handle personal chat messages
     socket.on('personalchat message', async (data) => {
       try {
@@ -76,19 +103,25 @@ io.on('connection', (socket) => {
         });
         await newMessage.save();
         io.emit('personalchat message', newMessage);
+
+        // Retrieve previous messages with the same sender and receiver, sorted by createdAt
+        const previousMessages = await PersonalMessage.findAll({
+          where: [
+            { sender: sender, receiver: receiver },
+            { sender: receiver, receiver: sender }
+          ]
+        })
+
+        // Emit previous messages to the sender and receiver
+        socket.emit('previous personalchat messages', previousMessages);
+        socket.to(receiver).emit('previous personalchat messages', previousMessages);
       } catch (error) {
         console.error('Error saving message:', error);
       }
     });
-  
-  
-      // Join a group
-      socket.on('joinGroup', (groupId) => {
-        if (groupId) { 
-          socket.join(groupId);
-        }
-      });
-    
+
+
+
     socket.on('disconnect', () => {
       console.log('A user disconnected.');
     });

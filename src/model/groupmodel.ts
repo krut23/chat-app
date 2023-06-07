@@ -1,7 +1,6 @@
 import { DataTypes, Model, Sequelize, UUIDV4} from 'sequelize';
 import sequelize from '../database';
 import { v4 as uuidv4 } from 'uuid';
-import GroupUser from './groupusermodel';
 import GroupMessage from './Groupmessagemodel';
 
 class Group extends Model {

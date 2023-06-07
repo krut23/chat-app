@@ -4,12 +4,13 @@
   <meta charset="UTF-8">
   <title>Group Chat</title>
   <style>
-     body {
+    body {
       margin: 0;
       padding: 20px;
       font-family: Arial, sans-serif;
       background-color: #f1f1f1;
     }
+
     .container {
       max-width: 600px;
       margin: 0 auto;
@@ -24,10 +25,6 @@
       border: 1px solid #ccc;
       background-color: #ffffff;
       padding: 10px;
-    }
-
-    .messages {
-      margin-bottom: 20px;
     }
 
     .message {
@@ -69,22 +66,22 @@
     }
 
     .form-group button {
-      
       padding: 10px;
       border-radius: 5px;
       border: none;
       background-color: #00b909;
       color: rgb(0, 0, 0);
       cursor: pointer;
-}
-.form-group button:hover{
-border: 2px solid black;
-}
+    }
+
+    .form-group button:hover {
+      border: 2px solid black;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Group Chat</h1>
+    <h1 id="group-name"></h1>
     <div class="messages-container">
       <div class="messages"></div>
     </div>
@@ -94,17 +91,20 @@ border: 2px solid black;
       <input type="hidden" id="group-id" value="<%= groupId %>">
     </div>
   </div>
-
+  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
   <script>
     const socket = io();
+    socket.connect();
     
     const messagesContainer = document.querySelector('.messages');
     const messageInput = document.getElementById('message-input');
     const sendButton = document.getElementById('send-button');
     const groupIdInput = document.getElementById('group-id');
+    const groupNameElement = document.getElementById('group-name');
     const username = prompt('Enter your username'); 
-
+    const groupId = groupIdInput.value; 
+  
     // Function to add a message to the chat
     function addMessage(message, position) {
       const messageElement = document.createElement('div');
@@ -124,9 +124,11 @@ border: 2px solid black;
       messagesContainer.appendChild(messageElement);
       messagesContainer.scrollTop = messagesContainer.scrollHeight; 
     }
-
+  
     // Function to send a message
-    function sendMessage() {
+    function sendMessage(event) {
+      event.preventDefault(); 
+  
       const content = messageInput.value;
       const groupId = groupIdInput.value;
       if (content && groupId) {
@@ -139,9 +141,10 @@ border: 2px solid black;
         messageInput.value = '';
       }
     }
+  
     // Event listener for the send button
     sendButton.addEventListener('click', sendMessage);
-
+  
     // Socket.IO event for receiving a new message
     socket.on('message', function(message) {
       let position = 'left';
@@ -150,6 +153,34 @@ border: 2px solid black;
       }
       addMessage(message, position);
     });
+  
+    // Socket.IO event for user joined
+    socket.on('userJoined', function(message) {
+      const systemMessage = {
+        content: message
+      };
+      addMessage(systemMessage, 'center');
+    });
+  
+
+    // Socket.IO event for receiving previous messages
+  socket.on('previousMessages', function(previousMessages) {
+    previousMessages.forEach(function(message) {
+      let position = 'left';
+      if (message.username === username) {
+        position = 'right';
+      }
+      addMessage(message, position);
+    });
+  });
+  
+    // Socket.IO event for receiving the group name
+    socket.on('groupName', function(groupName) {
+    groupNameElement.textContent = `${groupName}`;
+  });
+
+    // Emit "joinChat" event when the user joins the chat
+    socket.emit('joinChat', groupId, username);
   </script>
 </body>
 </html>

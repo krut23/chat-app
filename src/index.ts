@@ -24,7 +24,7 @@ app.post("/register", register);
 
 // user login
 app.get("/user_login", (req, res) => {
-  res.render("user_login")
+  res.render("user_login");
 })
 app.post("/login", login);
 
@@ -33,7 +33,7 @@ app.post("/login", login);
 app.get("/chathistory", (req, res) => {
   res.render("chathistory")
 })
-app.get("/chat_history", chathistory)
+app.get("/chat_history",authenticate,  chathistory)
 
 
 // Server login page
@@ -77,7 +77,7 @@ app.delete("/groups/:groupId/members/:userId", authenticate, groupRemoveMember);
 app.delete("/groups/:groupId", authenticate, deleteGroup);
 
 
-const PORT = process.env.PORT || 8001;
+const PORT = process.env.PORT || 7001;
 httpServer.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

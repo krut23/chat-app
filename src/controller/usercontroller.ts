@@ -48,7 +48,7 @@ export const register = async (req: Request, res: Response) => {
 
       const token = jwt.sign({ id: user.id}, process.env.ACCESS_TOKEN!, {expiresIn: '10h'});
 
-      res.redirect(`/chat_history?token=${token}`);
+    res.redirect(`/chat_history?token=${token}`);
     } catch (error) {
       console.error(error);
       return res.status(500).json({ message: 'Internal server error' });
@@ -61,6 +61,7 @@ export const register = async (req: Request, res: Response) => {
       const pageNumber = parseInt(page as string) || 1;
       const pageSize = parseInt(limit as string) || 10;
   
+      
       // Fetch the chat history for the user
       const chatHistory = await GroupMessage.findAndCountAll({
         offset: (pageNumber - 1) * pageSize,
@@ -78,5 +79,6 @@ export const register = async (req: Request, res: Response) => {
       res.status(500).json({ error: 'Internal server error' });
     }
   };
+  
   
 export default { register,login,chathistory};

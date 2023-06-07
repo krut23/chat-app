@@ -2,6 +2,9 @@ import { DataTypes, Model } from 'sequelize';
 import sequelize from '../database'; 
 
 class PersonalMessage extends Model {
+  static find(arg0: { $or: { sender: any; receiver: any; }[]; }) {
+    throw new Error('Method not implemented.');
+  }
   
   public id!: number;
   public sender!: string;

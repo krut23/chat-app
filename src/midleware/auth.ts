@@ -19,6 +19,7 @@ declare global {
         if (!token) {
           return res.status(401).json({ message: 'Authorization header missing' });
         }
+        
         try {
           // Verify the token
           const decoded = jwt.verify(token, process.env.ACCESS_TOKEN!);
