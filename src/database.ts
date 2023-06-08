@@ -1,6 +1,7 @@
 import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
 
+
 dotenv.config({ path: './config.env' });
 
 const sequelize = new Sequelize(
@@ -8,13 +9,6 @@ const sequelize = new Sequelize(
   { dialect: 'postgres', logging: false }
 );
 
-sequelize.sync({ force: false })
-  .then(() => {
-    console.log('All models were synchronized successfully.');
-  })
-  .catch((err) => {
-    console.error('Unable to synchronize the models:', err);
-  });
 
 sequelize
   .authenticate()
@@ -24,5 +18,6 @@ sequelize
   .catch((err) => {
     console.error('Unable to connect to the database:', err);
   });
+
 
 export default sequelize;

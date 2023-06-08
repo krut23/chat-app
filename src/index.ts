@@ -6,6 +6,7 @@ import { authenticate } from './midleware/auth';
 import { initializeSocket } from './controller/socket';
 import User from './model/usermodel';
 
+
 const app = express();
 const httpServer = createServer(app);
 const io = initializeSocket(httpServer);
@@ -14,6 +15,8 @@ const io = initializeSocket(httpServer);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
+
+
 
 
 // user register
@@ -74,6 +77,7 @@ app.get('/index.ejs', (req, res) => {
 app.post("/groups/:groupId/members/:userId", authenticate, addGroupMember);
 app.delete("/groups/:groupId/members/:userId", authenticate, groupRemoveMember);
 app.delete("/groups/:groupId", authenticate, deleteGroup);
+
 
 
 const PORT = process.env.PORT || 7001;

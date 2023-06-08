@@ -7,12 +7,13 @@ class GroupMessage extends Model {
   id!: number;
   content!: string;
   groupId!: number;
-  username!:string // Add the groupId column
+  username!:string 
 
-  static associate() {
-    GroupMessage.belongsTo(Group, { foreignKey: 'groupId' });
-    GroupMessage.belongsTo(User, { foreignKey: 'userId' });
+  static associate(models: any) {
+    GroupMessage.belongsTo(models.Group, { foreignKey: 'groupId' });
+    GroupMessage.belongsTo(models.User, { foreignKey: 'senderId' });
   }
+  
 }
 
 GroupMessage.init(
@@ -37,8 +38,17 @@ GroupMessage.init(
   },
   {
     sequelize,
-    modelName: 'Group-Message',
+    tableName: 'group_message',
+    modelName: 'GroupMessage',
   }
 );
 
+GroupMessage.sync({ alter: true })
+  .then(() => {
+    console.log('Group-mesage model created successfully.');
+  })
+  .catch((error) => {
+    console.error('Error creating Group-message model:', error);
+  });
+  
 export default GroupMessage;

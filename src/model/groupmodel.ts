@@ -4,10 +4,12 @@ import { v4 as uuidv4 } from 'uuid';
 import GroupMessage from './Groupmessagemodel';
 
 class Group extends Model {
+  static associate(arg0: { GroupMessage: typeof GroupMessage; GroupMember: typeof import("./groupmembermodel").default; }) {
+    throw new Error('Method not implemented.');
+  }
   groupId!: number;
   name!: string;
   username!: string;
-  id: any;
 }
 
 
@@ -29,8 +31,17 @@ Group.init(
   },
   {
     sequelize,
+    tableName: 'group',
     modelName: 'Group',
   }
 );
+
+Group.sync({ alter: true })
+  .then(() => {
+    console.log('Group model created successfully.');
+  })
+  .catch((error) => {
+    console.error('Error creating Group model:', error);
+  });
 
 export default Group;

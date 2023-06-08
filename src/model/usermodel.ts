@@ -7,8 +7,7 @@ class User extends Model {
   public username!: string;
   public email!: string;
   public password!: string;
-  socketId: any;
-
+ 
   public static associate(models: any) {
     User.hasMany(models.Message, { foreignKey: 'senderId', as: 'sentMessages' });
     User.hasMany(models.Message, { foreignKey: 'receiverId', as: 'receivedMessages' });
@@ -42,10 +41,18 @@ User.init(
   
   },
   {
-    tableName: 'users',
     sequelize,
-    timestamps: false,
+    tableName: 'users',
+    modelName: 'User',
   }
 );
 
+User.sync({alter:true})
+  .then(() => {
+    console.log('User model created successfully.');
+  })
+  .catch((error) => {
+    console.error('Error creating User model:', error);
+  });
+  
 export default User;

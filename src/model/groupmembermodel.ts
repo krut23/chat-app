@@ -6,7 +6,7 @@ import User from './usermodel'
 class GroupMember extends Model {
   public id!:number;
   public groupId!: number;
-  public userId!: number;
+  public username!: string;
   public isAdmin!: boolean;
 
   public static associate(models: any) {
@@ -37,10 +37,18 @@ GroupMember.init(
     },
   },
   {
-    tableName: 'group_members',
     sequelize,
-    timestamps: false,
+    tableName: 'group_member',
+    modelName: 'Group',
   }
 );
 
+GroupMember.sync({ alter: true })
+  .then(() => {
+    console.log('Group-member model created successfully.');
+  })
+  .catch((error) => {
+    console.error('Error creating Group member model:', error);
+  });
+  
 export default GroupMember;

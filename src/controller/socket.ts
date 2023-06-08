@@ -109,7 +109,6 @@ export function initializeSocket(httpServer: HttpServer) {
     });
 
 
-
     // Handle request for previous messages
     socket.on('previous personalchat messages', async (data, callback) => {
       try {
