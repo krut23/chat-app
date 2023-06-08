@@ -5,6 +5,7 @@ import Group from '../model/groupmodel';
 import User from '../model/usermodel';
 import bcrypt from 'bcrypt';
 import { Server as HttpServer } from 'http';
+import { Op } from 'sequelize';
 
 export function initializeSocket(httpServer: HttpServer) {
   const io = new Server(httpServer);
@@ -91,7 +92,6 @@ export function initializeSocket(httpServer: HttpServer) {
     });
 
 
-
     // Handle personal chat messages
     socket.on('personalchat message', async (data) => {
       try {
@@ -103,20 +103,32 @@ export function initializeSocket(httpServer: HttpServer) {
         });
         await newMessage.save();
         io.emit('personalchat message', newMessage);
-
-        // Retrieve previous messages with the same sender and receiver, sorted by createdAt
-        const previousMessages = await PersonalMessage.findAll({
-          where: [
-            { sender: sender, receiver: receiver },
-            { sender: receiver, receiver: sender }
-          ]
-        })
-
-        // Emit previous messages to the sender and receiver
-        socket.emit('previous personalchat messages', previousMessages);
-        socket.to(receiver).emit('previous personalchat messages', previousMessages);
       } catch (error) {
-        console.error('Error saving message:', error);
+        console.error('Error saving message:', (error as Error).message);
+      }
+    });
+
+
+
+    // Handle request for previous messages
+    socket.on('previous personalchat messages', async (data, callback) => {
+      try {
+        const { sender, receiver } = data;
+
+        const previousMessages = await PersonalMessage.findAll({
+          where: {
+            [Op.or]: [
+              { sender: sender, receiver: receiver },
+              { sender: receiver, receiver: sender },
+            ],
+          },
+          order: [['createdAt', 'ASC']],
+        });
+
+        callback(previousMessages);
+      } catch (error) {
+        console.error('Error retrieving previous messages:', (error as Error).message);
+        callback([]);
       }
     });
 

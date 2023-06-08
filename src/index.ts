@@ -56,20 +56,19 @@ app.get('/index.ejs', (req, res) => {
 });
 
 
-// Server personal chat page
-app.get('/personalchat.ejs', async (req, res) => {
-  try {
-    const users = await User.findAll({
-      attributes: ['username'], 
-      raw: true, 
-    });
-
-    res.render('personalchat', {users});
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    res.status(500).send('Internal Server Error');
-  }
-});
+  // Server personal chat page
+  app.get('/personalchat.ejs', async (req, res) => {
+    try {
+      const users = await User.findAll({
+        attributes: ['username'], 
+        raw: true, 
+      });
+      res.render('personalchat', { users });
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  });
 
 // Group
 app.post("/groups/:groupId/members/:userId", authenticate, addGroupMember);

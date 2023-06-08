@@ -81,7 +81,6 @@
     padding-bottom: 100px;
   }
 
-
 </style>
 </head>
 <body>
@@ -89,10 +88,11 @@
     <h3>User List</h3>
     <ul id="user-list" class="user-list">
       <% users.forEach(function(user) { %>
-        <li class="user-item" onclick="openChat('<%= user.username %>')"><%= user.username %></li>
+          <li class="user-item" onclick="openChat('<%= user.username %>')"><%= user.username %></li>
       <% }); %>
     </ul>
   </div>
+  
   <div class="chat-container">
     <h3 id="header">Select a user</h3>
     <div id="message-container" class="message-container"></div>
@@ -108,7 +108,6 @@
     const form = document.getElementById('chat-form');
     const input = document.getElementById('message-input');
     const messageContainer = document.getElementById('message-container');
-    const userList = document.getElementById('user-list');
     const header = document.getElementById('header');
 
     // Prompt for sender and receiver usernames
@@ -127,19 +126,11 @@
     socket.on('personalchat message', (message) => {
       if (message.sender === sender) {
         // Sender message
-        const messageItem = document.createElement('div');
-        messageItem.className = 'message-item sender';
-        messageItem.innerHTML = `
-          <span class="message-content">${message.content}</span>
-        `;
+        const messageItem = createMessageItem(message.content, 'sender');
         messageContainer.appendChild(messageItem);
       } else if (message.sender === receiver) {
         // Receiver message
-        const messageItem = document.createElement('div');
-        messageItem.className = 'message-item receiver';
-        messageItem.innerHTML = `
-          <span class="message-content">${message.content}</span>
-        `;
+        const messageItem = createMessageItem(message.content, 'receiver');
         messageContainer.appendChild(messageItem);
       }
       messageContainer.scrollTop = messageContainer.scrollHeight; 
@@ -147,9 +138,33 @@
 
     function openChat(selectedUser) {
       receiver = selectedUser;
-      messageContainer.innerHTML = ''; 
-      header.innerText = `Chat with ${selectedUser}`; 
+      messageContainer.innerHTML = '';
+      header.innerText = `Chat with ${selectedUser}`;
+      
+      // Request previous messages
+      socket.emit('previous personalchat messages', { sender, receiver }, (previousMessages) => {
+        previousMessages.forEach((message) => {
+          if (message.sender === sender) {
+            // Sender message
+            const messageItem = createMessageItem(message.content, 'sender');
+            messageContainer.appendChild(messageItem);
+          } else if (message.sender === receiver) {
+            // Receiver message
+            const messageItem = createMessageItem(message.content, 'receiver');
+            messageContainer.appendChild(messageItem);
+          }
+        });
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+      });
+    }
+
+    function createMessageItem(content, messageType) {
+      const messageItem = document.createElement('div');
+      messageItem.className = `message-item ${messageType}`;
+      messageItem.innerHTML = `
+        <span class="message-content">${content}</span>
+      `;
+      return messageItem;
     }
   </script>
-</body>
 </html>
