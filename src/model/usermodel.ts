@@ -1,58 +1,51 @@
-import { Model, DataTypes } from 'sequelize';
-import sequelize from '../database';
+  import { Model, DataTypes } from 'sequelize';
+  import sequelize from '../database';
+  import bcrypt from 'bcrypt';
 
+  class User extends Model {
+    public id!: number;
+    public username!: string;
+    public email!: string;
+    public password!: string;
+    
 
-class User extends Model {
-  public id!: number;
-  public username!: string;
-  public email!: string;
-  public password!: string;
- 
-  public static associate(models: any) {
-    User.hasMany(models.Message, { foreignKey: 'senderId', as: 'sentMessages' });
-    User.hasMany(models.Message, { foreignKey: 'receiverId', as: 'receivedMessages' });
+    public static associate(models: any) {
+      User.hasMany(models.PersonalMessage, { foreignKey: 'senderId', as: 'sentMessages' });
+      User.hasMany(models.PersonalMessage, { foreignKey: 'receiverId', as: 'receivedMessages' });
+      User.belongsToMany(models.Group, { through: models.GroupMember, foreignKey: 'userId', as: 'groups' });
+    }
   }
-}
 
-User.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true,
-    },
-    username: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
-    email: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-      validate: {
-        isEmail: true,
+  User.init(
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      username: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+      },
+      email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+        validate: {
+          isEmail: true,
+        },
+      },
+      password: {
+        type: DataTypes.STRING,
+        allowNull: false,
       },
     },
-    password: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-  
-  },
-  {
-    sequelize,
-    tableName: 'users',
-    modelName: 'User',
-  }
-);
+    {
+      sequelize,
+      tableName: 'users',
+      modelName: 'User',
+    }
+  );
 
-User.sync({alter:true})
-  .then(() => {
-    console.log('User model created successfully.');
-  })
-  .catch((error) => {
-    console.error('Error creating User model:', error);
-  });
-  
-export default User;
+  export default User;

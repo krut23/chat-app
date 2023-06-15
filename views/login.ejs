@@ -91,42 +91,42 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const socket = io();
+     const socket = io();
 
-    const loginForm = document.querySelector('#loginForm');
-    const usernameInput = document.querySelector('#usernameInput');
-    const passwordInput = document.querySelector('#passwordInput');
+const loginForm = document.querySelector('#loginForm');
+const usernameInput = document.querySelector('#usernameInput');
+const passwordInput = document.querySelector('#passwordInput');
 
-    loginForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const username = usernameInput.value;
-      const password = passwordInput.value;
+loginForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const username = usernameInput.value;
+  const password = passwordInput.value;
 
-      if (username && password) {
-        const data = {
-          username: username,
-          password: password
-        };
-        // Send the login data to the server
-        socket.emit('login', data);
-      }
-    });
+  if (username && password) {
+    const data = {
+      username: username,
+      password: password
+    };
+    // Send the login data to the server
+    socket.emit('login', data);
+  }
+});
 
-    socket.on('loginSuccess', (data) => {
-      console.log('Login successful:', data.message);
-      // Redirect to the create group page
-      window.location.href = './creategroup.ejs';
-    });
+socket.on('loginSuccess', (data) => {
+  console.log('Login successful:', data.message);
+  localStorage.setItem('token', data.token);
+  window.location.href = './creategroup';
+});
 
-    // loginError event
-    socket.on('loginError', (data) => {
-      console.log('Login error:', data.message);
-      const errorElement = document.createElement('p');
-      errorElement.className = 'error-message';
-      errorElement.textContent = data.message;
-      const container = document.querySelector('.container');
-      container.appendChild(errorElement);
-    });
+// loginError event
+socket.on('loginError', (data) => {
+  console.log('Login error:', data.message);
+  const errorElement = document.createElement('p');
+  errorElement.className = 'error-message';
+  errorElement.textContent = data.message;
+  const container = document.querySelector('.container');
+  container.appendChild(errorElement);
+});
   </script>
 </body>
 

@@ -1,17 +1,19 @@
-import { DataTypes, Model, Sequelize, UUIDV4} from 'sequelize';
+import { DataTypes, Model } from 'sequelize';
 import sequelize from '../database';
 import { v4 as uuidv4 } from 'uuid';
-import GroupMessage from './Groupmessagemodel';
+import GroupMember from './groupmembermodel';
 
 class Group extends Model {
-  static associate(arg0: { GroupMessage: typeof GroupMessage; GroupMember: typeof import("./groupmembermodel").default; }) {
-    throw new Error('Method not implemented.');
-  }
-  groupId!: number;
-  name!: string;
-  username!: string;
-}
+  public groupId!: string;
+  public name!: string;
+  id: any;
 
+  public static associate(models: any) {
+    Group.hasMany(models.GroupMessage, { foreignKey: 'groupId', as: 'messages' });
+    Group.hasMany(models.GroupMember, { foreignKey: 'groupId', as: 'members' });
+    Group.belongsToMany(models.User, { through: models.GroupMember, foreignKey: 'groupId', as: 'users' });
+  }
+}
 
 Group.init(
   {
@@ -24,24 +26,13 @@ Group.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    username: {
-      type: DataTypes.STRING, 
-      allowNull: false,
-    },
   },
   {
     sequelize,
     tableName: 'group',
     modelName: 'Group',
+    paranoid: false
   }
 );
-
-Group.sync({ alter: true })
-  .then(() => {
-    console.log('Group model created successfully.');
-  })
-  .catch((error) => {
-    console.error('Error creating Group model:', error);
-  });
 
 export default Group;

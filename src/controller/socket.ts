@@ -6,6 +6,10 @@ import User from '../model/usermodel';
 import bcrypt from 'bcrypt';
 import { Server as HttpServer } from 'http';
 import { Op } from 'sequelize';
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv'
+
+dotenv.config({ path: './config.env' });
 
 export function initializeSocket(httpServer: HttpServer) {
   const io = new Server(httpServer);
@@ -29,8 +33,9 @@ export function initializeSocket(httpServer: HttpServer) {
           return;
         }
         // Successful login
-        socket.emit('loginSuccess', { message: 'Login successful' });
-
+        const token = jwt.sign({ id: user.id }, process.env.ACCESS_TOKEN!, { expiresIn: '1d' });
+        socket.emit('loginSuccess', { message: 'Login successful', token });
+    
       } catch (error) {
         console.error(error);
         socket.emit('loginError', { message: 'Internal server error' });
@@ -108,28 +113,27 @@ export function initializeSocket(httpServer: HttpServer) {
       }
     });
 
+// Handle request for previous messages
+socket.on('previous personalchat messages', async (data, callback) => {
+  try {
+    const { sender, receiver } = data;
 
-    // Handle request for previous messages
-    socket.on('previous personalchat messages', async (data, callback) => {
-      try {
-        const { sender, receiver } = data;
-
-        const previousMessages = await PersonalMessage.findAll({
-          where: {
-            [Op.or]: [
-              { sender: sender, receiver: receiver },
-              { sender: receiver, receiver: sender },
-            ],
-          },
-          order: [['createdAt', 'ASC']],
-        });
-
-        callback(previousMessages);
-      } catch (error) {
-        console.error('Error retrieving previous messages:', (error as Error).message);
-        callback([]);
-      }
+    const previousMessages = await PersonalMessage.findAll({
+      where: {
+        [Op.or]: [
+          { sender: sender, receiver: receiver },
+          { sender: receiver, receiver: sender },
+        ],
+      },
+      order: [['createdAt', 'ASC']],
     });
+
+    callback(previousMessages);
+  } catch (error) {
+    console.error('Error retrieving previous messages:', (error as Error).message);
+    callback([]);
+  }
+});
 
 
 

@@ -1,19 +1,17 @@
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../database';
-import Group from './groupmodel';
 import User from './usermodel';
 
 class GroupMessage extends Model {
-  id!: number;
-  content!: string;
-  groupId!: number;
-  username!:string 
+  public id!: number;
+  public content!: string;
+  public groupId!: number;
+  public username!: string;
 
-  static associate(models: any) {
-    GroupMessage.belongsTo(models.Group, { foreignKey: 'groupId' });
-    GroupMessage.belongsTo(models.User, { foreignKey: 'senderId' });
+  public static associate(models: any) {
+    GroupMessage.belongsTo(models.Group, { foreignKey: 'groupId', as: 'group' });
+    GroupMessage.belongsTo(models.User, { foreignKey: 'senderId', as: 'sender' });
   }
-  
 }
 
 GroupMessage.init(
@@ -28,11 +26,11 @@ GroupMessage.init(
       allowNull: false,
     },
     groupId: {
-      type: DataTypes.UUID, 
+      type: DataTypes.UUID,
       allowNull: false,
     },
     username: {
-      type: DataTypes.STRING,   
+      type: DataTypes.STRING,
       allowNull: false,
     },
   },
@@ -43,12 +41,4 @@ GroupMessage.init(
   }
 );
 
-GroupMessage.sync({ alter: true })
-  .then(() => {
-    console.log('Group-mesage model created successfully.');
-  })
-  .catch((error) => {
-    console.error('Error creating Group-message model:', error);
-  });
-  
 export default GroupMessage;

@@ -36,7 +36,6 @@
     }
 
     .form-group button {
-
       padding: 10px;
       border-radius: 5px;
       border: none;
@@ -50,13 +49,14 @@
     }
 
     .group-list {
-    margin-top: 20px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    list-style: none;
-    overflow-y: scroll;
-    max-height: 200px; 
-  }
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      list-style: none;
+      overflow-y: scroll;
+      max-height: 200px;
+    }
+
     .group-list li {
       width: auto;
       padding: 5px 0;
@@ -109,6 +109,7 @@
     const socket = io();
     const groupList = document.querySelector('.group-list');
     const createGroupButton = document.getElementById('create-group-button');
+    const groupInput = document.getElementById('group-input');
 
     // Function to add a group to the list
     function addGroupToList(group) {
@@ -134,19 +135,26 @@
 
     // Function to create a group
     function createGroup() {
-      const groupName = document.getElementById('group-input').value;
-      const username = prompt('Enter your username');
-      fetch('/api/groups', {
+      const groupName = groupInput.value;
+      const token = localStorage.getItem('token'); 
+      fetch('creategroups', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
         },
-        body: JSON.stringify({ name: groupName, username: username }),
+        body: JSON.stringify({ name: groupName }),
       })
         .then(response => response.json())
-        .then(group => {
-          addGroupToList(group);
-          socket.emit('createGroup', groupName);
+        .then(data => {
+          if (data.groupId) {
+            const group = { name: groupName, groupId: data.groupId };
+            addGroupToList(group);
+            socket.emit('createGroup', group);
+            groupInput.value = ''; 
+          } else {
+            console.error('Error creating group:', data.message);
+          }
         })
         .catch(error => {
           console.error('Error creating group:', error);
@@ -168,5 +176,7 @@
     });
 
   </script>
+
 </body>
+
 </html>
