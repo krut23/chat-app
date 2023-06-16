@@ -45,8 +45,9 @@ app.get('/', (req, res) => {
 
 
 // Server create group page
-app.get('/creategroup', (req, res) => {
-  res.render('creategroup');
+app.get('/creategroup.ejs', (req, res) => {
+  const token = req.query.token;
+  res.render('creategroup',{token});
 });
 app.post('/creategroups',authenticate, createGroup);
 

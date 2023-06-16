@@ -4,7 +4,8 @@ import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import User from '../model/usermodel'
 import GroupMessage from '../model/Groupmessagemodel';
-import  sequelize  from '../database';
+import sequelize from '../database';
+import axios from 'axios';
 
 dotenv.config({ path: './config.env' });
 
@@ -73,17 +74,11 @@ export const chathistory = async (req: Request, res: Response) => {
     const pageNumber = parseInt(page as string) || 1;
     const pageSize = parseInt(limit as string) || 10;
 
-    const transaction = await sequelize.transaction(); // Start a new transaction
-
-    try {
       // Fetch the chat history for the user
       const chatHistory = await GroupMessage.findAndCountAll({
         offset: (pageNumber - 1) * pageSize,
         limit: pageSize,
-        transaction,
       });
-
-      await transaction.commit(); // Commit the transaction
 
       res.render('chat_history', {
         chatHistory: chatHistory.rows,
@@ -92,12 +87,7 @@ export const chathistory = async (req: Request, res: Response) => {
       });
     } catch (error) {
       console.error(error);
-      await transaction.rollback(); // Rollback the transaction
       res.status(500).json({ error: 'Internal server error' });
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal server error' });
   }
 };
 

@@ -33,8 +33,8 @@ export function initializeSocket(httpServer: HttpServer) {
           return;
         }
         // Successful login
-        const token = jwt.sign({ id: user.id }, process.env.ACCESS_TOKEN!, { expiresIn: '1d' });
-        socket.emit('loginSuccess', { message: 'Login successful', token });
+        const token = jwt.sign({ id: user.id }, process.env.ACCESS_TOKEN!, { expiresIn: '10h' });
+        socket.emit('loginSuccess', { message: 'Login successful',token });
     
       } catch (error) {
         console.error(error);
@@ -134,8 +134,6 @@ socket.on('previous personalchat messages', async (data, callback) => {
     callback([]);
   }
 });
-
-
 
     socket.on('disconnect', () => {
       console.log('A user disconnected.');
