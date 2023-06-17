@@ -5,9 +5,11 @@ import dotenv from 'dotenv';
 import User from '../model/usermodel'
 import GroupMessage from '../model/Groupmessagemodel';
 import sequelize from '../database';
-import axios from 'axios';
+import redisclient from './redisClient';  
 
 dotenv.config({ path: './config.env' });
+
+
 
 export const register = async (req: Request, res: Response) => {
   let transaction;
@@ -60,6 +62,9 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const token = jwt.sign({ id: user.id }, process.env.ACCESS_TOKEN!, { expiresIn: '10h' });
+
+  // Store the token in Redis
+  redisclient.set(token, user.id.toString(),'EX', 10 * 60 * 60); // Set expiration time to 10 hours
 
     res.redirect(`/chat_history?token=${token}`);
   } catch (error) {

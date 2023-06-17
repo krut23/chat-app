@@ -8,6 +8,8 @@ import { Server as HttpServer } from 'http';
 import { Op } from 'sequelize';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv'
+import redisClient from './redisClient';
+
 
 dotenv.config({ path: './config.env' });
 
@@ -34,8 +36,12 @@ export function initializeSocket(httpServer: HttpServer) {
         }
         // Successful login
         const token = jwt.sign({ id: user.id }, process.env.ACCESS_TOKEN!, { expiresIn: '10h' });
+
+        // Store the token in Redis
+        redisClient.set(token, user.id.toString(),'EX', 10 * 60 * 60); // Set expiration time to 10 hours
+
         socket.emit('loginSuccess', { message: 'Login successful',token });
-    
+     
       } catch (error) {
         console.error(error);
         socket.emit('loginError', { message: 'Internal server error' });
