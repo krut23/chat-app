@@ -7,7 +7,7 @@
     public username!: string;
     public email!: string;
     public password!: string;
-    
+    public apiKey!: string;
 
     public static associate(models: any) {
       User.hasMany(models.PersonalMessage, { foreignKey: 'senderId', as: 'sentMessages' });
@@ -39,7 +39,7 @@
       password: {
         type: DataTypes.STRING,
         allowNull: false,
-      },
+      }
     },
     {
       sequelize,

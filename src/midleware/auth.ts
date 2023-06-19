@@ -26,16 +26,23 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
     const decoded = jwt.verify(token, process.env.ACCESS_TOKEN!) as { id: number };
     req.user = decoded;
 
-    // Check if the token is present in Redis
-    redisClient.get(token, (error, userId) => {
+    // Check if the token, API key, and user ID are present in Redis
+    const redisKey = `${decoded.id}`;
+    redisClient.get(redisKey, (error, redisValue) => {
       if (error) {
         console.error(error);
         return res.status(500).json({ message: 'Internal server error' });
       }
 
-      if (!userId || parseInt(userId) !== decoded.id) {
+      if (!redisValue) {
         return res.status(401).json({ message: 'Invalid token' });
       }
+      const { token: redisToken, apiKey } = JSON.parse(redisValue);
+      if (redisToken !== token) {
+        return res.status(401).json({ message: 'Invalid token' });
+      }
+
+      req.user = { id: decoded.id, apiKey };
       next();
     });
   } catch (error) {
