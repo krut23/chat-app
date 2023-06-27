@@ -1,0 +1,35 @@
+version: "3"
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 7003:7001
+    depends_on:
+      - db
+      - redis
+    environment:
+      - PGUSER=postgres
+      - PGHOST=db
+      - PGPORT=5432
+      - PGPASSWORD=123456789
+      - PGDATABASE=chat
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    links:
+      - db
+      - redis
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=123456789
+      - POSTGRES_DB=chat
+    ports:
+      - 5433:5432
+  redis:
+    image: redis
+    ports:
+      - 6380:6379
+    command: redis-server --bind 0.0.0.0
