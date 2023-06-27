@@ -61,25 +61,8 @@ app.get('/index.ejs', (req, res) => {
 
   // Server personal chat page
 app.get('/personalchat.ejs', async (req, res) => {
-  const scopeName = 'personalchats';
-  const existingScopes: string[] = [];
-
-  const scopeExists = existingScopes.includes(scopeName);
-
-  if (!scopeExists) {
-    User.addScope(scopeName, (options) => {
-      return {
-        attributes: ['username'],
-        raw: true,
-        override: true,
-      };
-    });
-
-    existingScopes.push(scopeName);
-  }
-
   try {
-    const users = await User.scope(scopeName).findAll({});
+    const users = await User.findAll({});
     res.render('personalchat', { users });
   } catch (error) {
     console.error('Error fetching users:', error);
@@ -87,24 +70,11 @@ app.get('/personalchat.ejs', async (req, res) => {
   }
 });
 
-
 // Group
 app.post("/groups/:groupId", authenticate, addGroupMember);
 app.delete("/groups/:groupId/remove", authenticate, groupRemoveMember);
 app.delete("/groups/:groupId", authenticate, deleteGroup);
 
-
-
-// Synchronize models with the database
-sequelize
-  .sync({ force: false })
-  .then(() => {
-    console.log('All models were synchronized successfully.');
-  })
-  .catch((err) => {
-    console.error('Error synchronizing models:', err);
-  });
-  
 
 const PORT = process.env.PORT || 7001;
 httpServer.listen(PORT, () => {
