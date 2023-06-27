@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "docker":"docker-compose up",
     "build": "npx tsc",
     "start": "ts-node src/index.ts",
     "migrate": "npx sequelize-cli db:migrate",
